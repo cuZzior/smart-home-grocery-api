@@ -9,14 +9,31 @@ class Grocery(Resource):
         grocery = GroceryModel.find_by_id(data['id'])
         if grocery:
             return grocery.json()
-        return {'message': 'No such grocery in database'}, 404
+        return {
+            'response': {
+                'error': True,
+                'message': 'No such grocery in database.'
+            }
+        }, 404
 
     def post(self):
         data = request.get_json()
+        if not data['name']:
+            return {
+                'response': {
+                    'error': True,
+                    'message': 'Please provide grocery name.'
+                }
+            }, 400
         grocery = GroceryModel(data['name'], data['exp_date'])
         grocery.save_to_db()
 
-        return {'message': 'Grocery added to database.'}
+        return {
+            'response': {
+                'error': False,
+                'message': 'Grocery added to database.'
+            }
+        }
 
     def delete(self):
         data = request.get_json()
@@ -32,6 +49,7 @@ class Grocery(Resource):
         if not grocery:
             grocery = GroceryModel(data['name'], data['exp_date'])
         else:
+            grocery.name = data['name']
             grocery.exp_date = data['exp_date']
         grocery.save_to_db()
         return grocery.json()
